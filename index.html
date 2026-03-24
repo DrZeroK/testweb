@@ -92,6 +92,24 @@
         .hint-btn:hover:not(:disabled) {
             background-color: #218838;
         }
+        .tip-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .tip-btn:hover:not(:disabled) {
+            background-color: #e0a800;
+        }
+        .question-tip {
+            font-size: 14px;
+            color: #856404;
+            background-color: #fff3cd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .question-tip.show {
+            display: block;
+        }
         .answer-tip {
             font-size: 14px;
             font-weight: bold;
@@ -243,7 +261,7 @@
         <button id="lightbox-next" class="lightbox-nav-btn">&#10095;</button>
         
         <div id="lightbox-controls">
-            <button id="lightbox-hint-btn">显示提示</button>
+            <button id="lightbox-hint-btn">显示化学式</button>
             <span id="lightbox-close">&times;</span>
         </div>
         
@@ -381,6 +399,49 @@
             "37": "Fentanyl芬太尼",
             "38": "Atropine阿托品",
             "39": "Acarbose阿卡波糖"
+        };
+
+        // 每道题的小提示
+        const questionHints = {
+            "1": "苯二氮䓬类，常用于抗癫痫、抗惊厥",
+            "2": "非典型抗精神病药，用于精神分裂症等精神疾病",
+            "3": "GLP-1受体激动剂，可降糖、减重",
+            "4": "苯二氮䓬类，主打抗焦虑、助眠",
+            "5": "经典解热镇痛药，也可抗血小板聚集",
+            "6": "酪氨酸激酶抑制剂，白血病靶向药",
+            "7": "中枢兴奋剂，常用于ADHD（多动症）",
+            "8": "维A酸类药物，治疗重度痤疮",
+            "9": "PD-1抑制剂，肿瘤免疫治疗药物",
+            "10": "苯二氮䓬类，短效抗焦虑药",
+            "11": "钙通道阻滞剂，降压、缓解心绞痛",
+            "12": "促胃动力药，改善腹胀、止吐",
+            "13": "非苯二氮䓬类催眠药，改善失眠",
+            "14": "SSRI类抗抑郁药",
+            "15": "COX-2选择性抑制剂，非甾体抗炎药",
+            "16": "非甾体抗炎药，镇痛抗炎效果强",
+            "17": "非典型抗精神病药",
+            "18": "经典β内酰胺类抗生素，抗菌药",
+            "19": "SSRI类抗抑郁药，商品名百忧解",
+            "20": "抗组胺药，抗过敏、缓解鼻炎",
+            "21": "骨骼肌松弛剂，恶性高热特效药",
+            "22": "用于无法正常进食的患者，补充营养",
+            "23": "阿片类强效镇痛药",
+            "24": "非苯二氮䓬类，短效催眠药",
+            "25": "降糖药，1型糖尿病必须使用",
+            "26": "苯二氮䓬类，俗称安定，抗焦虑抗惊厥",
+            "27": "2型糖尿病一线口服降糖药",
+            "28": "静脉麻醉药，手术全麻常用",
+            "29": "阿片类药物，用于戒毒替代治疗",
+            "30": "COX-2选择性抑制剂，抗炎镇痛",
+            "31": "经典解热镇痛药，俗称扑热息痛",
+            "32": "非甾体抗炎药，解热镇痛常用",
+            "33": "阿片受体拮抗剂，解救阿片类药物中毒",
+            "34": "阿片类药物，主打镇咳、镇痛",
+            "35": "阿片类强效镇痛药，癌痛常用",
+            "36": "阿片类镇痛药，俗称杜冷丁",
+            "37": "阿片类强效镇痛药，麻醉辅助用药",
+            "38": "M胆碱受体拮抗剂，解救有机磷中毒",
+            "39": "α糖苷酶抑制剂，降糖，主打降餐后血糖"
         };
 
         // ================= 全局变量 =================
@@ -544,7 +605,7 @@
         function updateLightboxButton() {
             if (!currentLightboxPrefix) return;
             const state = groupStates[currentLightboxPrefix];
-            lightboxHintBtn.textContent = state.showHint ? "恢复原始视图" : "显示提示";
+            lightboxHintBtn.textContent = state.showHint ? "恢复原始视图" : "显示化学式";
         }
 
         function openLightbox(imgData, displayList) {
@@ -650,15 +711,27 @@
                     submitBtn.disabled = state.isCorrect || !this.value;
                 };
 
-                // 提示按钮
-                const hintBtn = document.createElement('button');
-                hintBtn.className = 'hint-btn';
-                hintBtn.textContent = state.showHint ? "恢复原始视图" : "显示提示";
-                hintBtn.onclick = function(e) {
+                // 图片提示按钮
+                const imgHintBtn = document.createElement('button');
+                imgHintBtn.className = 'hint-btn';
+                imgHintBtn.textContent = state.showHint ? "恢复原始视图" : "显示化学式";
+                imgHintBtn.onclick = function(e) {
                     e.stopPropagation();
                     groupStates[prefix].showHint = !groupStates[prefix].showHint;
                     saveStates();
                     renderGallery();
+                };
+
+                // 题目小提示按钮
+                const questionTipBtn = document.createElement('button');
+                questionTipBtn.className = 'tip-btn';
+                questionTipBtn.textContent = '题目小提示';
+                const questionTipText = document.createElement('div');
+                questionTipText.className = 'question-tip';
+                questionTipText.textContent = questionHints[prefix];
+                questionTipBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    questionTipText.classList.toggle('show');
                 };
 
                 // 答题提示文本
@@ -672,7 +745,9 @@
                 // 组装答题区域
                 answerArea.appendChild(select);
                 answerArea.appendChild(submitBtn);
-                answerArea.appendChild(hintBtn);
+                answerArea.appendChild(imgHintBtn);
+                answerArea.appendChild(questionTipBtn);
+                answerArea.appendChild(questionTipText);
                 answerArea.appendChild(tipText);
 
                 // 组装头部
