@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>北医元火社团招新题目展示</title>
+    <title>北医元火社团招新题目答题系统</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,16 +22,23 @@
             background-color: #f0f9ff;
             border-color: #b3e5fc;
         }
+        .group.correct {
+            background-color: #f0fff4;
+            border-color: #95de64;
+        }
         .group-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             margin-bottom: 15px;
         }
         .header-left {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .group-checkbox {
             width: 18px;
@@ -44,6 +51,23 @@
             color: #333;
             margin: 0;
         }
+        .answer-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .answer-select {
+            padding: 7px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            min-width: 280px;
+        }
+        .answer-select:disabled {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
         button {
             padding: 8px 16px;
             font-size: 14px;
@@ -54,13 +78,34 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        button:hover {
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
             background-color: #0056b3;
+        }
+        .hint-btn {
+            background-color: #28a745;
+        }
+        .hint-btn:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        .answer-tip {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .tip-correct {
+            color: #52c41a;
+        }
+        .tip-error {
+            color: #ff4d4f;
         }
         .images-container {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
+            margin-top: 15px;
         }
         .image-wrapper {
             text-align: center;
@@ -95,22 +140,72 @@
             justify-content: center;
             align-items: center;
             cursor: zoom-out;
+            flex-direction: column;
+        }
+        /* 左右切换按钮 */
+        .lightbox-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            font-size: 40px;
+            padding: 10px 20px;
+            cursor: pointer;
+            z-index: 10001;
+            user-select: none;
+            transition: background-color 0.3s;
+            border-radius: 5px;
+        }
+        .lightbox-nav-btn:hover:not(:disabled) {
+            background-color: rgba(0,0,0,0.9);
+        }
+        .lightbox-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        #lightbox-prev {
+            left: 20px;
+        }
+        #lightbox-next {
+            right: 20px;
+        }
+        /* 灯箱顶部控制栏 */
+        #lightbox-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 10000;
+        }
+        #lightbox-hint-btn {
+            background-color: #28a745;
+        }
+        #lightbox-hint-btn:hover:not(:disabled) {
+            background-color: #218838;
         }
         #lightbox img {
             max-width: 90%;
-            max-height: 90%;
+            max-height: 80%;
             object-fit: contain;
             border-radius: 4px;
+            cursor: default;
         }
         #lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 35px;
             color: #f1f1f1;
             font-size: 40px;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
+            line-height: 1;
+        }
+        #lightbox-info {
+            color: #ccc;
+            margin-top: 15px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -120,15 +215,21 @@
 
     <!-- 全屏预览容器 -->
     <div id="lightbox">
-        <span id="lightbox-close">&times;</span>
+        <button id="lightbox-prev" class="lightbox-nav-btn">&#10094;</button>
+        <button id="lightbox-next" class="lightbox-nav-btn">&#10095;</button>
+        
+        <div id="lightbox-controls">
+            <button id="lightbox-hint-btn">显示提示</button>
+            <span id="lightbox-close">&times;</span>
+        </div>
+        
         <img id="lightbox-img" src="" alt="Fullscreen Image">
+        <div id="lightbox-info"></div>
     </div>
 
     <script>
-        // ================= 已配置好的图片信息 =================
-        // 图片文件夹路径
+        // ================= 基础配置 =================
         const imagePath = "./";
-        // 所有图片文件名
         const imageFiles = [
             "1-0.jpg", "1-1.jpg", "1-2.jpg", "1-3.jpg",
             "2-0.jpg", "2-1.jpg", "2-2.jpg",
@@ -170,28 +271,130 @@
             "38-0.jpg", "38-1.jpg", "38-2.png",
             "39-0.jpg", "39-1.jpg"
         ];
-        // ======================================================
 
+        // ================= 答题配置 =================
+        // 所有候选项
+        const allOptions = [
+            "Acarbose阿卡波糖",
+            "Alprazolam阿普唑仑",
+            "Aripiprazole阿立哌唑",
+            "Aspirin阿司匹林",
+            "Atropine阿托品",
+            "Celecoxib塞来昔布",
+            "Clonazepam氯硝西泮",
+            "Codeine可待因",
+            "Dantrolene丹曲林",
+            "Diazepam地西泮",
+            "Diclofenac双氯芬酸",
+            "Domperidone多潘立酮",
+            "Fentanyl芬太尼",
+            "Fluoxetine氟西汀",
+            "Ibuprofen布洛芬",
+            "Imatinib伊马替尼",
+            "Imrecoxib艾瑞昔布",
+            "Insulin胰岛素",
+            "Isotretinoin异维A酸",
+            "Loratadine氯雷他定",
+            "Lorazepam劳拉西泮",
+            "Metformin二甲双胍",
+            "Methadone美沙酮",
+            "Methylphenidate哌甲酯",
+            "Morphine吗啡",
+            "Naloxone纳洛酮",
+            "Nifedipine硝苯地平",
+            "Oxycodone羟考酮",
+            "Paracetamol对乙酰氨基酚",
+            "Pembrolizumab帕博利珠单抗",
+            "Penicillin G青霉素G/盘尼西林G",
+            "Pethidine哌替啶",
+            "Propofol丙泊酚",
+            "Quetiapine喹硫平",
+            "Semaglutide司美格鲁肽",
+            "Sertraline舍曲林",
+            "Zolpidem唑吡坦",
+            "Zopiclone佐匹克隆",
+            "肠内营养粉剂（TP）"
+        ];
+
+        // 正确答案对应表（题号: 正确选项）
+        const correctAnswers = {
+            "1": "Clonazepam氯硝西泮",
+            "2": "Quetiapine喹硫平",
+            "3": "Semaglutide司美格鲁肽",
+            "4": "Lorazepam劳拉西泮",
+            "5": "Aspirin阿司匹林",
+            "6": "Imatinib伊马替尼",
+            "7": "Methylphenidate哌甲酯",
+            "8": "Isotretinoin异维A酸",
+            "9": "Pembrolizumab帕博利珠单抗",
+            "10": "Alprazolam阿普唑仑",
+            "11": "Nifedipine硝苯地平",
+            "12": "Domperidone多潘立酮",
+            "13": "Zopiclone佐匹克隆",
+            "14": "Sertraline舍曲林",
+            "15": "Imrecoxib艾瑞昔布",
+            "16": "Diclofenac双氯芬酸",
+            "17": "Aripiprazole阿立哌唑",
+            "18": "Penicillin G青霉素G/盘尼西林G",
+            "19": "Fluoxetine氟西汀",
+            "20": "Loratadine氯雷他定",
+            "21": "Dantrolene丹曲林",
+            "22": "肠内营养粉剂（TP）",
+            "23": "Oxycodone羟考酮",
+            "24": "Zolpidem唑吡坦",
+            "25": "Insulin胰岛素",
+            "26": "Diazepam地西泮",
+            "27": "Metformin二甲双胍",
+            "28": "Propofol丙泊酚",
+            "29": "Methadone美沙酮",
+            "30": "Celecoxib塞来昔布",
+            "31": "Paracetamol对乙酰氨基酚",
+            "32": "Ibuprofen布洛芬",
+            "33": "Naloxone纳洛酮",
+            "34": "Codeine可待因",
+            "35": "Morphine吗啡",
+            "36": "Pethidine哌替啶",
+            "37": "Fentanyl芬太尼",
+            "38": "Atropine阿托品",
+            "39": "Acarbose阿卡波糖"
+        };
+
+        // ================= 全局变量 =================
         const gallery = document.getElementById('gallery');
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img');
         const lightboxClose = document.getElementById('lightbox-close');
+        const lightboxHintBtn = document.getElementById('lightbox-hint-btn');
+        const lightboxInfo = document.getElementById('lightbox-info');
+        const lightboxPrev = document.getElementById('lightbox-prev');
+        const lightboxNext = document.getElementById('lightbox-next');
 
-        // 存储每个组的状态: { showHint: boolean, checked: boolean }
-        let groupStates = {};
-        const STORAGE_KEY = 'imageGalleryGroupStates';
+        // 状态管理
+        let groupStates = {}; // 每个题组的状态
+        let usedOptions = []; // 已经被答对的选项
+        let currentLightboxPrefix = null;
+        let currentImageData = null;
+        let currentDisplayList = [];
+        let currentIndex = 0;
 
-        // 从 localStorage 加载状态
+        // 本地存储key
+        const STORAGE_KEY_GROUP = 'quizGroupStates';
+        const STORAGE_KEY_USED = 'quizUsedOptions';
+
+        // ================= 基础工具函数 =================
+        // 加载本地存储的状态
         function loadStates() {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                groupStates = JSON.parse(saved);
-            }
+            const savedGroups = localStorage.getItem(STORAGE_KEY_GROUP);
+            if (savedGroups) groupStates = JSON.parse(savedGroups);
+            
+            const savedUsed = localStorage.getItem(STORAGE_KEY_USED);
+            if (savedUsed) usedOptions = JSON.parse(savedUsed);
         }
 
-        // 保存状态到 localStorage
+        // 保存状态到本地存储
         function saveStates() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(groupStates));
+            localStorage.setItem(STORAGE_KEY_GROUP, JSON.stringify(groupStates));
+            localStorage.setItem(STORAGE_KEY_USED, JSON.stringify(usedOptions));
         }
 
         // 解析文件名
@@ -208,7 +411,7 @@
             return null;
         }
 
-        // 按前缀分组
+        // 按前缀分组图片
         function groupImages(images) {
             const groups = {};
             images.forEach(file => {
@@ -216,9 +419,15 @@
                 if (parsed) {
                     if (!groups[parsed.prefix]) {
                         groups[parsed.prefix] = [];
-                        // 初始化该组状态 (如果没有记录的话)
+                        // 初始化题组状态
                         if (!groupStates[parsed.prefix]) {
-                            groupStates[parsed.prefix] = { showHint: false, checked: false };
+                            groupStates[parsed.prefix] = {
+                                showHint: false,
+                                checked: false,
+                                selectedOption: '',
+                                isAnswered: false,
+                                isCorrect: false
+                            };
                         }
                     }
                     groups[parsed.prefix].push(parsed);
@@ -227,22 +436,113 @@
             return groups;
         }
 
-        // 渲染画廊
+        // 获取某个题组当前应显示的图片列表
+        function getDisplayListForGroup(prefix) {
+            const groups = groupImages(imageFiles);
+            const groupImagesArr = groups[prefix];
+            const state = groupStates[prefix];
+            const hasHighSuffix = groupImagesArr.some(img => img.suffix >= 2);
+            
+            const list = [];
+            groupImagesArr.forEach(img => {
+                let shouldDisplay = false;
+                if (state.showHint) {
+                    shouldDisplay = hasHighSuffix ? (img.suffix === 1 || img.suffix >= 2) : (img.suffix === 1);
+                } else {
+                    shouldDisplay = hasHighSuffix ? (img.suffix === 0 || img.suffix >= 2) : (img.suffix === 0);
+                }
+                if (shouldDisplay) list.push(img);
+            });
+            return list;
+        }
+
+        // ================= 答题相关函数 =================
+        // 提交答案
+        function submitAnswer(prefix) {
+            const state = groupStates[prefix];
+            const selected = state.selectedOption;
+            const correct = correctAnswers[prefix];
+
+            if (!selected) return;
+
+            if (selected === correct) {
+                // 答对了
+                state.isAnswered = true;
+                state.isCorrect = true;
+                state.checked = true; // 自动勾选标记框
+                // 把选项加入已使用列表
+                if (!usedOptions.includes(selected)) {
+                    usedOptions.push(selected);
+                }
+                saveStates();
+                renderGallery();
+            } else {
+                // 答错了
+                state.isAnswered = true;
+                state.isCorrect = false;
+                saveStates();
+                renderGallery();
+            }
+        }
+
+        // ================= 灯箱相关函数 =================
+        function updateLightboxContent() {
+            if (currentDisplayList.length === 0) return;
+            
+            const data = currentDisplayList[currentIndex];
+            lightboxImg.src = imagePath + data.fullName;
+            lightboxInfo.textContent = `第 ${data.prefix} 题 - ${data.fullName} (${currentIndex + 1}/${currentDisplayList.length})`;
+            currentImageData = data;
+            currentLightboxPrefix = data.prefix;
+
+            lightboxPrev.disabled = currentIndex === 0;
+            lightboxNext.disabled = currentIndex === currentDisplayList.length - 1;
+            updateLightboxButton();
+        }
+
+        function updateLightboxButton() {
+            if (!currentLightboxPrefix) return;
+            const state = groupStates[currentLightboxPrefix];
+            lightboxHintBtn.textContent = state.showHint ? "恢复原始视图" : "显示提示";
+        }
+
+        function openLightbox(imgData, displayList) {
+            currentDisplayList = displayList;
+            currentIndex = displayList.findIndex(i => i.fullName === imgData.fullName);
+            currentIndex = currentIndex === -1 ? 0 : currentIndex;
+
+            lightbox.style.display = 'flex';
+            updateLightboxContent();
+        }
+
+        function closeLightbox() {
+            lightbox.style.display = 'none';
+            currentLightboxPrefix = null;
+            currentImageData = null;
+            currentDisplayList = [];
+            currentIndex = 0;
+        }
+
+        // ================= 渲染函数 =================
         function renderGallery() {
             gallery.innerHTML = '';
             const groups = groupImages(imageFiles);
 
+            // 按题号从小到大排序
             Object.keys(groups).sort((a,b) => parseInt(a) - parseInt(b)).forEach(prefix => {
-                const groupImages = groups[prefix];
-                const hasHighSuffix = groupImages.some(img => img.suffix >= 2);
+                const groupImagesArr = groups[prefix];
                 const state = groupStates[prefix];
+                const displayList = getDisplayListForGroup(prefix);
+                // 过滤当前可用的选项
+                const availableOptions = allOptions.filter(opt => 
+                    !usedOptions.includes(opt) || opt === state.selectedOption
+                );
 
-                // 创建分组容器
+                // 创建题组容器
                 const groupDiv = document.createElement('div');
-                groupDiv.className = `group ${state.checked ? 'used' : ''}`;
-                groupDiv.id = `group-${prefix}`;
+                groupDiv.className = `group ${state.checked ? 'used' : ''} ${state.isCorrect ? 'correct' : ''}`;
                 
-                // 头部（复选框 + 标题 + 按钮）
+                // 头部区域
                 const header = document.createElement('div');
                 header.className = 'group-header';
                 
@@ -250,12 +550,11 @@
                 const headerLeft = document.createElement('div');
                 headerLeft.className = 'header-left';
 
-                // 复选框
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'group-checkbox';
                 checkbox.checked = state.checked;
-                checkbox.title = '标记为已使用';
+                checkbox.disabled = state.isCorrect; // 答对后自动锁定勾选框
                 checkbox.onchange = function() {
                     groupStates[prefix].checked = this.checked;
                     saveStates();
@@ -269,63 +568,102 @@
                 headerLeft.appendChild(checkbox);
                 headerLeft.appendChild(title);
 
-                // 右侧：按钮
-                const btn = document.createElement('button');
-                btn.textContent = state.showHint ? "恢复题目" : "显示提示";
-                btn.onclick = function() {
+                // 答题区域
+                const answerArea = document.createElement('div');
+                answerArea.className = 'answer-area';
+
+                // 下拉选择框
+                const select = document.createElement('select');
+                select.className = 'answer-select';
+                select.disabled = state.isCorrect; // 答对后锁定选择框
+                select.value = state.selectedOption;
+
+                // 空选项
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = '请选择答案';
+                select.appendChild(emptyOption);
+
+                // 填充选项
+                availableOptions.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    select.appendChild(option);
+                });
+
+                // 提交按钮
+                const submitBtn = document.createElement('button');
+                submitBtn.textContent = '提交答案';
+                submitBtn.disabled = state.isCorrect || !state.selectedOption;
+                submitBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    submitAnswer(prefix);
+                };
+
+                // 【修复】选择选项后实时更新提交按钮状态
+                select.onchange = function() {
+                    groupStates[prefix].selectedOption = this.value;
+                    saveStates();
+                    // 实时更新按钮禁用状态
+                    submitBtn.disabled = state.isCorrect || !this.value;
+                };
+
+                // 提示按钮
+                const hintBtn = document.createElement('button');
+                hintBtn.className = 'hint-btn';
+                hintBtn.textContent = state.showHint ? "恢复原始视图" : "显示提示";
+                hintBtn.onclick = function(e) {
+                    e.stopPropagation();
                     groupStates[prefix].showHint = !groupStates[prefix].showHint;
                     saveStates();
                     renderGallery();
                 };
 
+                // 答题提示文本
+                const tipText = document.createElement('div');
+                tipText.className = 'answer-tip';
+                if (state.isAnswered) {
+                    tipText.textContent = state.isCorrect ? '配对正确' : '配对错误';
+                    tipText.classList.add(state.isCorrect ? 'tip-correct' : 'tip-error');
+                }
+
+                // 组装答题区域
+                answerArea.appendChild(select);
+                answerArea.appendChild(submitBtn);
+                answerArea.appendChild(hintBtn);
+                answerArea.appendChild(tipText);
+
+                // 组装头部
                 header.appendChild(headerLeft);
-                header.appendChild(btn);
+                header.appendChild(answerArea);
                 groupDiv.appendChild(header);
 
                 // 图片容器
                 const container = document.createElement('div');
                 container.className = 'images-container';
 
-                // 确定要显示的图片
-                groupImages.forEach(img => {
-                    let displayImg = null;
+                displayList.forEach(img => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'image-wrapper';
 
-                    if (state.showHint) {
-                        if (hasHighSuffix) {
-                            if (img.suffix === 1 || img.suffix >= 2) displayImg = img;
-                        } else {
-                            if (img.suffix === 1) displayImg = img;
-                        }
-                    } else {
-                        if (hasHighSuffix) {
-                            if (img.suffix === 0 || img.suffix >= 2) displayImg = img;
-                        } else {
-                            if (img.suffix === 0) displayImg = img;
-                        }
+                    const imgEl = document.createElement('img');
+                    imgEl.src = imagePath + img.fullName;
+                    imgEl.alt = img.fullName;
+                    imgEl.loading = "lazy";
+                    
+                    imgEl.onclick = function(e) {
+                        e.stopPropagation();
+                        openLightbox(img, displayList);
                     }
 
-                    if (displayImg) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'image-wrapper';
+                    const nameLabel = document.createElement('div');
+                    nameLabel.className = 'image-name';
+                    nameLabel.textContent = img.fullName;
 
-                        const imgEl = document.createElement('img');
-                        imgEl.src = imagePath + displayImg.fullName;
-                        imgEl.alt = displayImg.fullName;
-                        imgEl.loading = "lazy";
-                        
-                        // 点击打开全屏预览
-                        imgEl.onclick = function() {
-                            openLightbox(this.src);
-                        }
-
-                        const nameLabel = document.createElement('div');
-                        nameLabel.className = 'image-name';
-                        nameLabel.textContent = displayImg.fullName;
-
-                        wrapper.appendChild(imgEl);
-                        wrapper.appendChild(nameLabel);
-                        container.appendChild(wrapper);
-                    }
+                    wrapper.appendChild(imgEl);
+                    wrapper.appendChild(nameLabel);
+                    container.appendChild(wrapper);
                 });
 
                 groupDiv.appendChild(container);
@@ -333,27 +671,67 @@
             });
         }
 
-        // 打开全屏预览
-        function openLightbox(src) {
-            lightbox.style.display = 'flex';
-            lightboxImg.src = src;
-        }
-
-        // 关闭全屏预览
-        function closeLightbox() {
-            lightbox.style.display = 'none';
-        }
-
-        // 绑定关闭事件
+        // ================= 事件绑定 =================
+        // 灯箱关闭事件
         lightboxClose.onclick = closeLightbox;
         lightbox.onclick = function(e) {
             if (e.target === lightbox) closeLightbox();
         };
+
+        // 灯箱导航事件
+        lightboxPrev.onclick = function(e) {
+            e.stopPropagation();
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateLightboxContent();
+            }
+        };
+
+        lightboxNext.onclick = function(e) {
+            e.stopPropagation();
+            if (currentIndex < currentDisplayList.length - 1) {
+                currentIndex++;
+                updateLightboxContent();
+            }
+        };
+
+        // 灯箱内提示按钮
+        lightboxHintBtn.onclick = function(e) {
+            e.stopPropagation();
+            if (!currentLightboxPrefix) return;
+
+            groupStates[currentLightboxPrefix].showHint = !groupStates[currentLightboxPrefix].showHint;
+            saveStates();
+            renderGallery();
+
+            currentDisplayList = getDisplayListForGroup(currentLightboxPrefix);
+            const newIdx = currentDisplayList.findIndex(i => i.suffix === currentImageData.suffix);
+            currentIndex = newIdx !== -1 ? newIdx : 0;
+            if (currentIndex >= currentDisplayList.length) currentIndex = Math.max(0, currentDisplayList.length - 1);
+
+            updateLightboxContent();
+        };
+
+        // 键盘事件
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && lightbox.style.display === 'flex') closeLightbox();
+            if (lightbox.style.display !== 'flex') return;
+
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateLightboxContent();
+                }
+            } else if (e.key === 'ArrowRight') {
+                if (currentIndex < currentDisplayList.length - 1) {
+                    currentIndex++;
+                    updateLightboxContent();
+                }
+            }
         });
 
-        // 初始化
+        // ================= 初始化 =================
         loadStates();
         renderGallery();
     </script>
