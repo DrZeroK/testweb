@@ -10,6 +10,7 @@
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            padding-bottom: 80px; /* 给底部按钮留出空间 */
         }
         .group {
             margin-bottom: 40px;
@@ -127,6 +128,24 @@
             color: #666;
         }
 
+        /* 底部重置按钮样式 */
+        .reset-area {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+        .reset-btn {
+            background-color: #dc3545;
+            padding: 12px 30px;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.3);
+        }
+        .reset-btn:hover {
+            background-color: #c82333;
+        }
+
         /* 全屏预览样式 */
         #lightbox {
             display: none;
@@ -212,6 +231,11 @@
 <body>
 
     <div id="gallery"></div>
+
+    <!-- 底部重置按钮 -->
+    <div class="reset-area">
+        <button id="resetAllBtn" class="reset-btn">重置所有进度</button>
+    </div>
 
     <!-- 全屏预览容器 -->
     <div id="lightbox">
@@ -368,6 +392,7 @@
         const lightboxInfo = document.getElementById('lightbox-info');
         const lightboxPrev = document.getElementById('lightbox-prev');
         const lightboxNext = document.getElementById('lightbox-next');
+        const resetAllBtn = document.getElementById('resetAllBtn');
 
         // 状态管理
         let groupStates = {}; // 每个题组的状态
@@ -482,6 +507,22 @@
                 state.isCorrect = false;
                 saveStates();
                 renderGallery();
+            }
+        }
+
+        // ================= 重置进度函数 =================
+        function resetAllProgress() {
+            if (confirm('确定要重置所有答题进度吗？这将清除所有已选答案、配对记录和勾选状态，此操作不可恢复！')) {
+                // 清空本地存储
+                localStorage.removeItem(STORAGE_KEY_GROUP);
+                localStorage.removeItem(STORAGE_KEY_USED);
+                // 重置内存中的状态
+                groupStates = {};
+                usedOptions = [];
+                // 重新加载并渲染
+                loadStates();
+                renderGallery();
+                alert('进度已重置！');
             }
         }
 
@@ -601,7 +642,7 @@
                     submitAnswer(prefix);
                 };
 
-                // 【修复】选择选项后实时更新提交按钮状态
+                // 选择选项后实时更新提交按钮状态
                 select.onchange = function() {
                     groupStates[prefix].selectedOption = this.value;
                     saveStates();
@@ -672,6 +713,9 @@
         }
 
         // ================= 事件绑定 =================
+        // 绑定重置按钮事件
+        resetAllBtn.onclick = resetAllProgress;
+
         // 灯箱关闭事件
         lightboxClose.onclick = closeLightbox;
         lightbox.onclick = function(e) {
