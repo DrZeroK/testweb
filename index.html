@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026春北医元火社团招新题目答题系统</title>
+    <title>北医元火社团招新题目答题系统</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,6 +68,7 @@
         .answer-select:disabled {
             background-color: #f5f5f5;
             cursor: not-allowed;
+            color: #212529;
         }
         button {
             padding: 8px 16px;
@@ -635,7 +636,7 @@
                 const groupImagesArr = groups[prefix];
                 const state = groupStates[prefix];
                 const displayList = getDisplayListForGroup(prefix);
-                // 过滤当前可用的选项
+                // 过滤当前可用的选项：未被使用的选项 + 当前题已选的选项
                 const availableOptions = allOptions.filter(opt => 
                     !usedOptions.includes(opt) || opt === state.selectedOption
                 );
@@ -678,21 +679,31 @@
                 const select = document.createElement('select');
                 select.className = 'answer-select';
                 select.disabled = state.isCorrect; // 答对后锁定选择框
-                select.value = state.selectedOption;
 
-                // 空选项
+                // 先添加空选项
                 const emptyOption = document.createElement('option');
                 emptyOption.value = '';
                 emptyOption.textContent = '请选择答案';
                 select.appendChild(emptyOption);
 
-                // 填充选项
+                // 再填充所有可用选项
                 availableOptions.forEach(opt => {
                     const option = document.createElement('option');
                     option.value = opt;
                     option.textContent = opt;
                     select.appendChild(option);
                 });
+
+                // 【修复】最后设置选中值，确保选项已存在
+                select.value = state.selectedOption;
+
+                // 选择选项后实时更新提交按钮状态
+                select.onchange = function() {
+                    groupStates[prefix].selectedOption = this.value;
+                    saveStates();
+                    // 实时更新按钮禁用状态
+                    submitBtn.disabled = state.isCorrect || !this.value;
+                };
 
                 // 提交按钮
                 const submitBtn = document.createElement('button');
@@ -701,14 +712,6 @@
                 submitBtn.onclick = function(e) {
                     e.stopPropagation();
                     submitAnswer(prefix);
-                };
-
-                // 选择选项后实时更新提交按钮状态
-                select.onchange = function() {
-                    groupStates[prefix].selectedOption = this.value;
-                    saveStates();
-                    // 实时更新按钮禁用状态
-                    submitBtn.disabled = state.isCorrect || !this.value;
                 };
 
                 // 图片提示按钮
