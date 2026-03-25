@@ -123,6 +123,32 @@
         .tip-error {
             color: #ff4d4f;
         }
+        .choices-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .choice-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background-color: #fff;
+        }
+        .choice-item.selected {
+            border-color: #91d5ff;
+            background-color: #e6f7ff;
+        }
+        .choice-item.correct {
+            border-color: #95de64;
+            background-color: #f0fff4;
+        }
+        .choice-label {
+            font-size: 14px;
+            white-space: nowrap;
+        }
         .images-container {
             display: flex;
             flex-wrap: wrap;
@@ -512,7 +538,8 @@
                 picked.push(...remaining.slice(0, 3 - picked.length));
             }
 
-            return [correct, ...picked.slice(0, 3)];
+            // 将 4 个选项的顺序也打乱，避免“正确选项总在 A”
+            return shuffleArray([correct, ...picked.slice(0, 3)]);
         }
 
         // ================= 全局变量 =================
@@ -726,66 +753,45 @@
                 const headerLeft = document.createElement('div');
                 headerLeft.className = 'header-left';
 
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'group-checkbox';
-                checkbox.checked = state.checked;
-                checkbox.disabled = state.isCorrect; // 答对后自动锁定勾选框
-                checkbox.onchange = function() {
-                    groupStates[prefix].checked = this.checked;
-                    saveStates();
-                    groupDiv.classList.toggle('used', this.checked);
-                };
-
                 const title = document.createElement('div');
                 title.className = 'group-title';
                 title.textContent = `第 ${prefix} 题`;
-
-                headerLeft.appendChild(checkbox);
                 headerLeft.appendChild(title);
 
                 // 答题区域
                 const answerArea = document.createElement('div');
                 answerArea.className = 'answer-area';
 
-                // 下拉选择框
-                const select = document.createElement('select');
-                select.className = 'answer-select';
-                select.disabled = state.isCorrect; // 答对后锁定选择框
+                // 每道题直接显示 4 个选项（A/B/C/D），每个选项前都有“选择”按钮
+                const letters = ['A', 'B', 'C', 'D'];
+                const choicesContainer = document.createElement('div');
+                choicesContainer.className = 'choices-container';
+                availableOptions.forEach((opt, idx) => {
+                    const choiceItem = document.createElement('div');
+                    const shouldMarkSelected = state.selectedOption && opt === state.selectedOption;
+                    const shouldMarkCorrect = state.isAnswered && opt === correct;
+                    choiceItem.className = `choice-item ${shouldMarkSelected ? 'selected' : ''} ${shouldMarkCorrect ? 'correct' : ''}`;
 
-                // 先添加空选项
-                const emptyOption = document.createElement('option');
-                emptyOption.value = '';
-                emptyOption.textContent = '请选择答案';
-                select.appendChild(emptyOption);
+                    const chooseBtn = document.createElement('button');
+                    // 按钮文字用 A/B/C/D，便于快速点选
+                    chooseBtn.textContent = letters[idx];
+                    chooseBtn.disabled = state.isCorrect;
+                    chooseBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        if (groupStates[prefix].isCorrect) return;
+                        groupStates[prefix].selectedOption = opt;
+                        saveStates();
+                        submitAnswer(prefix);
+                    };
 
-                // 再填充所有可用选项
-                availableOptions.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    select.appendChild(option);
+                    const label = document.createElement('div');
+                    label.className = 'choice-label';
+                    label.textContent = opt;
+
+                    choiceItem.appendChild(chooseBtn);
+                    choiceItem.appendChild(label);
+                    choicesContainer.appendChild(choiceItem);
                 });
-
-                // 【修复】最后设置选中值，确保选项已存在
-                select.value = state.selectedOption;
-
-                // 选择选项后实时更新提交按钮状态
-                select.onchange = function() {
-                    groupStates[prefix].selectedOption = this.value;
-                    saveStates();
-                    // 实时更新按钮禁用状态
-                    submitBtn.disabled = state.isCorrect || !this.value;
-                };
-
-                // 提交按钮
-                const submitBtn = document.createElement('button');
-                submitBtn.textContent = '提交答案';
-                submitBtn.disabled = state.isCorrect || !state.selectedOption;
-                submitBtn.onclick = function(e) {
-                    e.stopPropagation();
-                    submitAnswer(prefix);
-                };
 
                 // 图片提示按钮
                 const imgHintBtn = document.createElement('button');
@@ -819,8 +825,7 @@
                 }
 
                 // 组装答题区域
-                answerArea.appendChild(select);
-                answerArea.appendChild(submitBtn);
+                answerArea.appendChild(choicesContainer);
                 answerArea.appendChild(imgHintBtn);
                 answerArea.appendChild(questionTipBtn);
                 answerArea.appendChild(questionTipText);
