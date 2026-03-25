@@ -402,6 +402,50 @@
             "39": "Acarbose阿卡波糖"
         };
 
+        // 每个题组固定仅保留 4 个下拉选项
+        // 顺序无关紧要：渲染时会确保包含该题的正确答案，且最多只展示 4 个。
+        const optionsByQuestion = {
+            "1": ["Clonazepam氯硝西泮", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Diazepam地西泮"],
+            "2": ["Quetiapine喹硫平", "Aripiprazole阿立哌唑", "Fluoxetine氟西汀", "Sertraline舍曲林"],
+            "3": ["Semaglutide司美格鲁肽", "Metformin二甲双胍", "Insulin胰岛素", "Acarbose阿卡波糖"],
+            "4": ["Lorazepam劳拉西泮", "Diazepam地西泮", "Clonazepam氯硝西泮", "Alprazolam阿普唑仑"],
+            "5": ["Aspirin阿司匹林", "Ibuprofen布洛芬", "Diclofenac双氯芬酸", "Celecoxib塞来昔布"],
+            "6": ["Imatinib伊马替尼", "Imrecoxib艾瑞昔布", "Isotretinoin异维A酸", "Celecoxib塞来昔布"],
+            "7": ["Methylphenidate哌甲酯", "Fluoxetine氟西汀", "Sertraline舍曲林", "Alprazolam阿普唑仑"],
+            "8": ["Isotretinoin异维A酸", "Imatinib伊马替尼", "Penicillin G青霉素G/盘尼西林G", "Loratadine氯雷他定"],
+            "9": ["Pembrolizumab帕博利珠单抗", "Imatinib伊马替尼", "Penicillin G青霉素G/盘尼西林G", "Celecoxib塞来昔布"],
+            "10": ["Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Diazepam地西泮", "Clonazepam氯硝西泮"],
+            "11": ["Nifedipine硝苯地平", "Celecoxib塞来昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
+            "12": ["Domperidone多潘立酮", "Methadone美沙酮", "Propofol丙泊酚", "Naloxone纳洛酮"],
+            "13": ["Zopiclone佐匹克隆", "Zolpidem唑吡坦", "Diazepam地西泮", "Lorazepam劳拉西泮"],
+            "14": ["Sertraline舍曲林", "Fluoxetine氟西汀", "Quetiapine喹硫平", "Aripiprazole阿立哌唑"],
+            "15": ["Imrecoxib艾瑞昔布", "Celecoxib塞来昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
+            "16": ["Diclofenac双氯芬酸", "Ibuprofen布洛芬", "Aspirin阿司匹林", "Imrecoxib艾瑞昔布"],
+            "17": ["Aripiprazole阿立哌唑", "Quetiapine喹硫平", "Fluoxetine氟西汀", "Sertraline舍曲林"],
+            "18": ["Penicillin G青霉素G/盘尼西林G", "Atropine阿托品", "Domperidone多潘立酮", "Paracetamol对乙酰氨基酚"],
+            "19": ["Fluoxetine氟西汀", "Sertraline舍曲林", "Quetiapine喹硫平", "Aripiprazole阿立哌唑"],
+            "20": ["Loratadine氯雷他定", "Lorazepam劳拉西泮", "Alprazolam阿普唑仑", "Zolpidem唑吡坦"],
+            "21": ["Dantrolene丹曲林", "Clonazepam氯硝西泮", "Diazepam地西泮", "Propofol丙泊酚"],
+            "22": ["肠内营养粉剂（TP）", "Insulin胰岛素", "Metformin二甲双胍", "Acarbose阿卡波糖"],
+            "23": ["Oxycodone羟考酮", "Morphine吗啡", "Codeine可待因", "Fentanyl芬太尼"],
+            "24": ["Zolpidem唑吡坦", "Zopiclone佐匹克隆", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮"],
+            "25": ["Insulin胰岛素", "Metformin二甲双胍", "Semaglutide司美格鲁肽", "Acarbose阿卡波糖"],
+            "26": ["Diazepam地西泮", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Clonazepam氯硝西泮"],
+            "27": ["Metformin二甲双胍", "Insulin胰岛素", "Semaglutide司美格鲁肽", "Acarbose阿卡波糖"],
+            "28": ["Propofol丙泊酚", "Fentanyl芬太尼", "Pethidine哌替啶", "Methadone美沙酮"],
+            "29": ["Methadone美沙酮", "Fentanyl芬太尼", "Oxycodone羟考酮", "Morphine吗啡"],
+            "30": ["Celecoxib塞来昔布", "Imrecoxib艾瑞昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
+            "31": ["Paracetamol对乙酰氨基酚", "Aspirin阿司匹林", "Ibuprofen布洛芬", "Celecoxib塞来昔布"],
+            "32": ["Ibuprofen布洛芬", "Diclofenac双氯芬酸", "Aspirin阿司匹林", "Paracetamol对乙酰氨基酚"],
+            "33": ["Naloxone纳洛酮", "Codeine可待因", "Morphine吗啡", "Oxycodone羟考酮"],
+            "34": ["Codeine可待因", "Naloxone纳洛酮", "Morphine吗啡", "Oxycodone羟考酮"],
+            "35": ["Morphine吗啡", "Oxycodone羟考酮", "Codeine可待因", "Fentanyl芬太尼"],
+            "36": ["Pethidine哌替啶", "Fentanyl芬太尼", "Morphine吗啡", "Codeine可待因"],
+            "37": ["Fentanyl芬太尼", "Pethidine哌替啶", "Morphine吗啡", "Oxycodone羟考酮"],
+            "38": ["Atropine阿托品", "Propofol丙泊酚", "Naloxone纳洛酮", "Dantrolene丹曲林"],
+            "39": ["Acarbose阿卡波糖", "Metformin二甲双胍", "Insulin胰岛素", "Semaglutide司美格鲁肽"]
+        };
+
         // 每道题的小提示
         const questionHints = {
             "1": "苯二氮䓬类，常用于抗癫痫、抗惊厥",
@@ -636,10 +680,20 @@
                 const groupImagesArr = groups[prefix];
                 const state = groupStates[prefix];
                 const displayList = getDisplayListForGroup(prefix);
-                // 过滤当前可用的选项：未被使用的选项 + 当前题已选的选项
-                const availableOptions = allOptions.filter(opt => 
-                    !usedOptions.includes(opt) || opt === state.selectedOption
-                );
+                // 每题只展示固定的 4 个选项，并确保包含正确答案
+                const correct = correctAnswers[prefix];
+                let availableOptions = (optionsByQuestion[prefix] || [correct]).slice(0, 4);
+                if (!availableOptions.includes(correct)) {
+                    // 强制把正确答案塞进选项里（并替换最后一个）
+                    availableOptions[availableOptions.length - 1] = correct;
+                }
+                // 兼容历史已选项：若本地存储的 selectedOption 不在这 4 个里，用它替换最后一个
+                if (state.selectedOption && !availableOptions.includes(state.selectedOption)) {
+                    const correctIndex = availableOptions.indexOf(correct);
+                    // 不允许覆盖正确答案；优先替换最后一个，否则替换第一个
+                    const replaceIndex = correctIndex === availableOptions.length - 1 ? 0 : availableOptions.length - 1;
+                    availableOptions[replaceIndex] = state.selectedOption;
+                }
 
                 // 创建题组容器
                 const groupDiv = document.createElement('div');
