@@ -404,49 +404,7 @@
             "39": "Acarbose阿卡波糖"
         };
 
-        // 每个题组固定仅保留 4 个下拉选项
-        // 顺序无关紧要：渲染时会确保包含该题的正确答案，且最多只展示 4 个。
-        const optionsByQuestion = {
-            "1": ["Clonazepam氯硝西泮", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Diazepam地西泮"],
-            "2": ["Quetiapine喹硫平", "Aripiprazole阿立哌唑", "Fluoxetine氟西汀", "Sertraline舍曲林"],
-            "3": ["Semaglutide司美格鲁肽", "Metformin二甲双胍", "Insulin胰岛素", "Acarbose阿卡波糖"],
-            "4": ["Lorazepam劳拉西泮", "Diazepam地西泮", "Clonazepam氯硝西泮", "Alprazolam阿普唑仑"],
-            "5": ["Aspirin阿司匹林", "Ibuprofen布洛芬", "Diclofenac双氯芬酸", "Celecoxib塞来昔布"],
-            "6": ["Imatinib伊马替尼", "Imrecoxib艾瑞昔布", "Isotretinoin异维A酸", "Celecoxib塞来昔布"],
-            "7": ["Methylphenidate哌甲酯", "Fluoxetine氟西汀", "Sertraline舍曲林", "Alprazolam阿普唑仑"],
-            "8": ["Isotretinoin异维A酸", "Imatinib伊马替尼", "Penicillin G青霉素G/盘尼西林G", "Loratadine氯雷他定"],
-            "9": ["Pembrolizumab帕博利珠单抗", "Imatinib伊马替尼", "Penicillin G青霉素G/盘尼西林G", "Celecoxib塞来昔布"],
-            "10": ["Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Diazepam地西泮", "Clonazepam氯硝西泮"],
-            "11": ["Nifedipine硝苯地平", "Celecoxib塞来昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
-            "12": ["Domperidone多潘立酮", "Methadone美沙酮", "Propofol丙泊酚", "Naloxone纳洛酮"],
-            "13": ["Zopiclone佐匹克隆", "Zolpidem唑吡坦", "Diazepam地西泮", "Lorazepam劳拉西泮"],
-            "14": ["Sertraline舍曲林", "Fluoxetine氟西汀", "Quetiapine喹硫平", "Aripiprazole阿立哌唑"],
-            "15": ["Imrecoxib艾瑞昔布", "Celecoxib塞来昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
-            "16": ["Diclofenac双氯芬酸", "Ibuprofen布洛芬", "Aspirin阿司匹林", "Imrecoxib艾瑞昔布"],
-            "17": ["Aripiprazole阿立哌唑", "Quetiapine喹硫平", "Fluoxetine氟西汀", "Sertraline舍曲林"],
-            "18": ["Penicillin G青霉素G/盘尼西林G", "Atropine阿托品", "Domperidone多潘立酮", "Paracetamol对乙酰氨基酚"],
-            "19": ["Fluoxetine氟西汀", "Sertraline舍曲林", "Quetiapine喹硫平", "Aripiprazole阿立哌唑"],
-            "20": ["Loratadine氯雷他定", "Lorazepam劳拉西泮", "Alprazolam阿普唑仑", "Zolpidem唑吡坦"],
-            "21": ["Dantrolene丹曲林", "Clonazepam氯硝西泮", "Diazepam地西泮", "Propofol丙泊酚"],
-            "22": ["肠内营养粉剂（TP）", "Insulin胰岛素", "Metformin二甲双胍", "Acarbose阿卡波糖"],
-            "23": ["Oxycodone羟考酮", "Morphine吗啡", "Codeine可待因", "Fentanyl芬太尼"],
-            "24": ["Zolpidem唑吡坦", "Zopiclone佐匹克隆", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮"],
-            "25": ["Insulin胰岛素", "Metformin二甲双胍", "Semaglutide司美格鲁肽", "Acarbose阿卡波糖"],
-            "26": ["Diazepam地西泮", "Alprazolam阿普唑仑", "Lorazepam劳拉西泮", "Clonazepam氯硝西泮"],
-            "27": ["Metformin二甲双胍", "Insulin胰岛素", "Semaglutide司美格鲁肽", "Acarbose阿卡波糖"],
-            "28": ["Propofol丙泊酚", "Fentanyl芬太尼", "Pethidine哌替啶", "Methadone美沙酮"],
-            "29": ["Methadone美沙酮", "Fentanyl芬太尼", "Oxycodone羟考酮", "Morphine吗啡"],
-            "30": ["Celecoxib塞来昔布", "Imrecoxib艾瑞昔布", "Diclofenac双氯芬酸", "Ibuprofen布洛芬"],
-            "31": ["Paracetamol对乙酰氨基酚", "Aspirin阿司匹林", "Ibuprofen布洛芬", "Celecoxib塞来昔布"],
-            "32": ["Ibuprofen布洛芬", "Diclofenac双氯芬酸", "Aspirin阿司匹林", "Paracetamol对乙酰氨基酚"],
-            "33": ["Naloxone纳洛酮", "Codeine可待因", "Morphine吗啡", "Oxycodone羟考酮"],
-            "34": ["Codeine可待因", "Naloxone纳洛酮", "Morphine吗啡", "Oxycodone羟考酮"],
-            "35": ["Morphine吗啡", "Oxycodone羟考酮", "Codeine可待因", "Fentanyl芬太尼"],
-            "36": ["Pethidine哌替啶", "Fentanyl芬太尼", "Morphine吗啡", "Codeine可待因"],
-            "37": ["Fentanyl芬太尼", "Pethidine哌替啶", "Morphine吗啡", "Oxycodone羟考酮"],
-            "38": ["Atropine阿托品", "Propofol丙泊酚", "Naloxone纳洛酮", "Dantrolene丹曲林"],
-            "39": ["Acarbose阿卡波糖", "Metformin二甲双胍", "Insulin胰岛素", "Semaglutide司美格鲁肽"]
-        };
+        // 选项不再使用固定映射（optionsByQuestion），而是按题组运行时随机抽取并缓存（optionsCache）。
 
         // 每道题的小提示
         const questionHints = {
@@ -491,6 +449,72 @@
             "39": "α糖苷酶抑制剂，降糖，主打降餐后血糖"
         };
 
+        // 每题组的 4 个选项缓存（避免每次 render 都改变选项）
+        let optionsCache = {};
+
+        // 将“正确选项(药名)”反查到对应题号，用于从题目小提示推断类别
+        const optionToQuestion = {};
+        Object.keys(correctAnswers).forEach(qid => {
+            optionToQuestion[correctAnswers[qid]] = qid;
+        });
+
+        // 从小提示中提取“类别关键字”（取逗号/顿号前的第一段）
+        function getCategoryFromHint(hintText) {
+            if (!hintText) return '';
+            return hintText.split('，')[0].split(',')[0];
+        }
+
+        function getOptionCategory(optionText) {
+            const qid = optionToQuestion[optionText];
+            const hintText = qid ? questionHints[qid] : '';
+            return getCategoryFromHint(hintText);
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // 为了“难度不要那么高”：干扰项优先选取来自不同类别的候选，
+        // 并尽量让 3 个干扰项彼此类别也不同（更好区分）。
+        function pickFourOptionsForQuestion(prefix) {
+            const correct = correctAnswers[prefix];
+            const correctCategory = getOptionCategory(correct);
+
+            const pool = allOptions.filter(opt => opt !== correct && getOptionCategory(opt) !== correctCategory);
+            const shuffled = shuffleArray(pool.slice());
+
+            const picked = [];
+            const usedCategories = new Set();
+            for (const opt of shuffled) {
+                const cat = getOptionCategory(opt);
+                if (usedCategories.has(cat)) continue;
+                picked.push(opt);
+                usedCategories.add(cat);
+                if (picked.length === 3) break;
+            }
+
+            // 若不够 3 个，则补充同类别候选（保证仍然只有 4 个选项）
+            if (picked.length < 3) {
+                for (const opt of shuffled) {
+                    if (picked.length === 3) break;
+                    if (picked.includes(opt)) continue;
+                    picked.push(opt);
+                }
+            }
+
+            // 极端情况下兜底（理论上不会发生）
+            if (picked.length < 3) {
+                const remaining = allOptions.filter(opt => opt !== correct && !picked.includes(opt));
+                picked.push(...remaining.slice(0, 3 - picked.length));
+            }
+
+            return [correct, ...picked.slice(0, 3)];
+        }
+
         // ================= 全局变量 =================
         const gallery = document.getElementById('gallery');
         const lightbox = document.getElementById('lightbox');
@@ -504,7 +528,6 @@
 
         // 状态管理
         let groupStates = {}; // 每个题组的状态
-        let usedOptions = []; // 已经被答对的选项
         let currentLightboxPrefix = null;
         let currentImageData = null;
         let currentDisplayList = [];
@@ -512,22 +535,17 @@
 
         // 本地存储key
         const STORAGE_KEY_GROUP = 'quizGroupStates';
-        const STORAGE_KEY_USED = 'quizUsedOptions';
 
         // ================= 基础工具函数 =================
         // 加载本地存储的状态
         function loadStates() {
             const savedGroups = localStorage.getItem(STORAGE_KEY_GROUP);
             if (savedGroups) groupStates = JSON.parse(savedGroups);
-            
-            const savedUsed = localStorage.getItem(STORAGE_KEY_USED);
-            if (savedUsed) usedOptions = JSON.parse(savedUsed);
         }
 
         // 保存状态到本地存储
         function saveStates() {
             localStorage.setItem(STORAGE_KEY_GROUP, JSON.stringify(groupStates));
-            localStorage.setItem(STORAGE_KEY_USED, JSON.stringify(usedOptions));
         }
 
         // 解析文件名
@@ -603,10 +621,6 @@
                 state.isAnswered = true;
                 state.isCorrect = true;
                 state.checked = true; // 自动勾选标记框
-                // 把选项加入已使用列表
-                if (!usedOptions.includes(selected)) {
-                    usedOptions.push(selected);
-                }
                 saveStates();
                 renderGallery();
             } else {
@@ -623,10 +637,9 @@
             if (confirm('确定要重置所有答题进度吗？这将清除所有已选答案、配对记录和勾选状态，此操作不可恢复！')) {
                 // 清空本地存储
                 localStorage.removeItem(STORAGE_KEY_GROUP);
-                localStorage.removeItem(STORAGE_KEY_USED);
                 // 重置内存中的状态
                 groupStates = {};
-                usedOptions = [];
+                optionsCache = {};
                 // 重新加载并渲染
                 loadStates();
                 renderGallery();
@@ -684,7 +697,11 @@
                 const displayList = getDisplayListForGroup(prefix);
                 // 每题只展示固定的 4 个选项，并确保包含正确答案
                 const correct = correctAnswers[prefix];
-                let availableOptions = (optionsByQuestion[prefix] || [correct]).slice(0, 4);
+                let availableOptions = optionsCache[prefix];
+                if (!availableOptions) {
+                    availableOptions = pickFourOptionsForQuestion(prefix);
+                    optionsCache[prefix] = availableOptions;
+                }
                 if (!availableOptions.includes(correct)) {
                     // 强制把正确答案塞进选项里（并替换最后一个）
                     availableOptions[availableOptions.length - 1] = correct;
