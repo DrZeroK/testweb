@@ -769,7 +769,7 @@
                 availableOptions.forEach((opt, idx) => {
                     const choiceItem = document.createElement('div');
                     const shouldMarkSelected = state.selectedOption && opt === state.selectedOption;
-                    const shouldMarkCorrect = state.isAnswered && opt === correct;
+                    const shouldMarkCorrect = state.isCorrect && opt === correct;
                     choiceItem.className = `choice-item ${shouldMarkSelected ? 'selected' : ''} ${shouldMarkCorrect ? 'correct' : ''}`;
 
                     const chooseBtn = document.createElement('button');
